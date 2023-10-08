@@ -1,0 +1,13 @@
+TEST1A: Not output (secondary alignment, not mapped, reverse comp)
+TEST2A: Not output (secondary alignment)
+TEST3A: Output 
+TEST4A: Not output (duplicate, reverse complement)
+TEST5A: Not output (duplicate)
+TEST6A: Not output (duplicate, soft clipped at start)
+TEST7A: Not output (duplicate, soft clipped at end, reverse complement)
+TEST8A: Not output (duplicate, reverse complement, soft clipped at start)
+
+TEST1B: Output (reverse complement)
+TEST2B: Not output (duplicate)
+
+TEST1C: Output

@@ -1,0 +1,78 @@
+Defining the problem 
+
+Background:
+PCR duplicates are copies of unique cDNAs that are made during the PCR amplification step of library prep. 
+Prior to amplifiication, sections of nucleic acids are marked with a Unique Molecular Identifier (UMI).
+These are random strings of nucleotides tacked on to the insert along with the adapters/indexes/etc.
+Not every read amplifies the same amount due to amplification bias during PCR. 
+PCR duplicates can be problematic when trying to quantify transcript abundance. 
+De-duplication removes PCR duplicates to result in a more accurate representation of the nucleic acid ratios present in the library pre-amplification.
+This is a useful and necessary step for differential abundance analysis. 
+
+Task:
+Write an algorithm that takes a uniquely mapped SAM file as input, filters out PCR duplicates, and outputs a SAM file with no duplicate sequences present.
+
+Pseudocode: 
+
+1 - (Preprocessing not in python) Samtools sort by chromosomal coordinates 
+2 - (Preprocessing in python) Sort out unmapped (4) and secondary alignments (256)
+3 - Unify chromosomal coordinates
+I want to filter out duplicates in a chromosomal coordinate-based way to take advantage of reference-based deduplication.
+In order to do this, I need to "correct" position information for reverse complements and soft clipping.
+    
+    if reverse complement AND soft clipped: 
+        rev comp UMI in QNAME 
+        subtract readlength and subtract soft clipped from position
+        
+    if reverse complement:
+        reverse complement the UMI in the QNAME
+        subtract readlength from POS column to get a corrected position 
+    
+    if soft clipped: 
+        subtract number of soft clipped from position
+
+*soft clipping needs to take into account soft clipping at start or end. 
+
+4 - UMI filtering and write to output file
+
+make sure file is sorted by position (chromosome + position)
+
+for line in file: 
+    
+    if position in line is position in mem:
+        if UMI in temp memory:
+            skip to next line
+        else:
+            write to file
+
+    else:
+        clear UMI
+        update position in mem
+
+
+High-level functions
+
+def prefilter(samfile: string):
+'''Takes a sam file, filters out all unmapped reads and secondary alignments, and outputs a processed sam file.'''
+return 
+Input: SAM file with secondary aligns (flag & 256) and unmapped sequences (flag & 4).
+Output: SAM file with only mapped primary alignments
+
+def coordinater(samfile: string):
+'''Takes a sam file, uses CIGAR string and strandedness information from FLAG to "correct" position info'''
+return
+Input: SAM file with left-most mapping position as POS
+Output: SAM file with "corrected" mapping position appended to end of QNAME 
+
+def rev_comp(nucleotides: string) -> string: 
+'''Takes a nucleotide string and returns the reverse compliment of that nucleotide string'''
+return reversecompliment
+Input: ACTG
+Output: CAGT
+
+def umi_filter(samfile: string):
+'''Takes a sam file, compares UMI and position, and outputs first UMI observed for each position.'''
+return 
+Input: SAM file with duplicate UMIs and unified positions
+Output: SAM file with unique UMIs per position
+

@@ -37,14 +37,18 @@ In order to do this, I need to "correct" position information for reverse comple
 
 make sure file is sorted by position (chromosome + position)
 
-for line in file: 
-    
-    if position in line is position in mem:
-        if UMI in temp memory:
-            skip to next line
-        else:
-            write to file
+make UMI dict
 
+for line in file: 
+    readline to list
+    if position listed in line is position in mem:
+        if UMI not in umidict:
+            skip line
+        else: 
+            if UMI in temp memory:
+                skip to next line
+            else:
+                write to file
     else:
         clear UMI
         update position in mem
@@ -69,6 +73,13 @@ def rev_comp(nucleotides: string) -> string:
 return reversecompliment
 Input: ACTG
 Output: CAGT
+
+def umi_dict(STL96.txt: string) -> set:
+'''Takes a text file with 96 UMI strings and makes a set of known UMIs'''
+return list
+Input: filename of UMI list
+Output: set object containing UMIs
+
 
 def umi_filter(samfile: string):
 '''Takes a sam file, compares UMI and position, and outputs first UMI observed for each position.'''

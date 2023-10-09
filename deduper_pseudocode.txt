@@ -9,6 +9,12 @@ PCR duplicates can be problematic when trying to quantify transcript abundance.
 De-duplication removes PCR duplicates to result in a more accurate representation of the nucleic acid ratios present in the library pre-amplification.
 This is a useful and necessary step for differential abundance analysis. 
 
+When we are writing our algorithm, we will need to take into account:
+1. Soft clipping (leftmost position starts where soft clipped portion ends and mapped seq begins)
+2. Reverse complements (adjusting leftmost position based on whether it is a reverse complement)
+3. Chromosomal coordinates (chromosome, position)
+4. Unique Molecular Identifiers (UMIs)
+
 Task:
 Write an algorithm that takes a uniquely mapped SAM file as input, filters out PCR duplicates, and outputs a SAM file with no duplicate sequences present.
 

@@ -11,3 +11,5 @@ TEST1B: Output (reverse complement)
 TEST2B: Not output (duplicate)
 
 TEST1C: Output
+
+TEST1D: UMI has errors

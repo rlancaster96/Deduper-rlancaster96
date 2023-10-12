@@ -13,48 +13,57 @@ When we are writing our algorithm, we will need to take into account:
 1. Soft clipping (leftmost position starts where soft clipped portion ends and mapped seq begins)
 2. Reverse complements (adjusting leftmost position based on whether it is a reverse complement)
 3. Chromosomal coordinates (chromosome, position)
-4. Unique Molecular Identifiers (UMIs)
+4. Unique Molecular Identifiers (96 known unique identifier sequences)
 
 Task:
 Write an algorithm that takes a uniquely mapped SAM file as input, filters out PCR duplicates, and outputs a SAM file with no duplicate sequences present.
 
 Pseudocode: 
 
-1 - (Preprocessing not in python) Samtools sort by chromosomal coordinates 
-2 - (Preprocessing in python) Sort out unmapped (4) and secondary alignments (256)
-3 - Unify chromosomal coordinates
+1 - (Preprocessing in python) Sort out unmapped (4) and secondary alignments (256)
+2 - Unify chromosomal coordinates
 I want to filter out duplicates in a chromosomal coordinate-based way to take advantage of reference-based deduplication.
-In order to do this, I need to "correct" position information for reverse complements and soft clipping.
-    
-    if reverse complement AND soft clipped: 
-        rev comp UMI in QNAME 
-        subtract readlength and subtract soft clipped from position
-        
-    if reverse complement:
-        reverse complement the UMI in the QNAME
-        subtract readlength from POS column to get a corrected position 
-    
-    if soft clipped: 
-        subtract number of soft clipped from position
+In order to do this, I need to "correct" position information for soft clipping, taking into account reverse complements.
+Align everything up according to the 5' position. 
 
-*soft clipping needs to take into account soft clipping at start or end. 
+read file
+    skip startswith @
+    
+if not a reverse complement: 
+    check CIGAR string. 
+    soft clipped at start?
+        adjust - subtract number of soft clipped from POS to get 5' position.
+
+if reverse complement:
+    reverse complement UMI in QNAME
+    check CIGAR string
+    soft clipped at end?
+        any indels or skips?
+            adjust pos - correct soft clip from POS to get 5' position. 
+
+3 - sort by chromosomal coordinates 
+Samtools sort (by chromosomal coordinates)?
+If I can't use samtools for this, then sort by chromosome + position using python.
+
 
 4 - UMI filtering and write to output file
 
 make sure file is sorted by position (chromosome + position)
+    keep a list of all POS seen; if POS is repeated, throw exception. 
 
-make UMI dict
+make UMI set from text file. 
+for line in file, add to set.
 
-for line in file: 
+
+for line in sam file: 
+    skip startswith @
     readline to list
     if position listed in line is position in mem:
-        if UMI not in umidict:
+        if UMI not in umidict AND/OR UMI in temp memory:
             skip line
         else: 
-            if UMI in temp memory:
-                skip to next line
-            else:
-                write to file
+            write UMI to temp memory
+            write whole line to sam out file
     else:
         clear UMI
         update position in mem
@@ -82,10 +91,9 @@ Output: CAGT
 
 def umi_dict(STL96.txt: string) -> set:
 '''Takes a text file with 96 UMI strings and makes a set of known UMIs'''
-return list
+return set
 Input: filename of UMI list
 Output: set object containing UMIs
-
 
 def umi_filter(samfile: string):
 '''Takes a sam file, compares UMI and position, and outputs first UMI observed for each position.'''

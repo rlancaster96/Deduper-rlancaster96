@@ -9,9 +9,9 @@
 import argparse
 def get_args():
     parser = argparse.ArgumentParser(description="deduper description")
-    parser.add_argument("-U", "--umis", help="Specify the file name containing UMI list", required=True, type=str)
-    parser.add_argument("-S", "--samfile", help="Specify the file SAM file you want to deduplicate", required=True, type=str)
-    parser.add_argument("-O", "--outfile", help="Specify the file SAM file you want to deduplicate", required=True, type=str)
+    parser.add_argument("-u", "--umi", help="Specify the file name containing UMI list", required=True, type=str)
+    parser.add_argument("-f", "--file", help="Specify the file SAM file you want to deduplicate", required=True, type=str)
+    parser.add_argument("-o", "--outfile", help="Specify the name of the deduplicated output file", required=True, type=str)
     return parser.parse_args()
 args = get_args()
 
@@ -28,15 +28,63 @@ def umi_reference_set(umifile):
     return umi_set
 
 #make umi reference set from the file
-umis = umi_reference_set(args.umis)
+umis = umi_reference_set(args.umi)
 
-samfile = open(args.samfile, "r")
+#setup splitting function for parsing lines in the sam file
+def splitit(splitline):
+    '''Takes a split line and returns a list of raw position, umi, strand, and cigar string.'''
+    strand = ""
+    #get umi
+    qname = splitline[0]
+    qname = qname.split(":")
+    umi = qname[7]
+        
+    #get strandedness 
+    flag = int(splitline[1])
+    if ((flag & 16)) == 16:
+        strand = "minus"
+    else:
+        strand = "plus"
+
+    #get the raw position 
+    rawposition = splitline[3]
+
+    #get the cigar string
+    cigar = splitline[5]
+    return rawposition, umi, strand, cigar
+
+
+#set up empty dictionary
+
+#unique_reads is a set that contains strings of (rawposition:umi:strand:cigar)
+unique_reads = set()
+chromosome = ""
+
+
+samfile = open(args.file, "r")
 outfile = open(args.outfile, "w")
 for line in samfile:
     if line.startswith("@"):
         outfile.write(line)
     else:
-        outfile.write("THIS LINE WILL BE ASSESSED FOR DEDUPER\n")
+        splitline = line.split("\t")
+        current_chromosome = splitline[2]
+        #check if chromosome is the same
+        if current_chromosome != chromosome:
+            #empty the set at each new chromosome
+            unique_reads = set()
+            print("the set is reset")
+            chromosome = current_chromosome
+            print(f"The chromosome has been updated to {chromosome}")
+            rawposition, umi, strand, cigar = splitit(splitline)
+            read_ID = rawposition + ":" + umi + ":" + strand + ":" + cigar
+            unique_reads.add(read_ID)
+            print(unique_reads)
+        else:
+            rawposition, umi, strand, cigar = splitit(splitline)
+            read_ID = rawposition + ":" + umi + ":" + strand + ":" + cigar
+            unique_reads.add(read_ID)
+            print(unique_reads)
 
 samfile.close()
 outfile.close()

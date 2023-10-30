@@ -59,7 +59,7 @@ def adjust_plus(cigar, rawposition):
         if a.isnumeric() == True:
             number = number + str(a)
         else:
-            if a == "S": # we only have to look at soft-clipping for plus strand reads
+            if a == "S": # we only have to look at first soft-clip event for plus strand reads
                 adjustedposition = int(rawposition) - int(number)
                 break #otherwise, if you have another softclip at the end, it will be wrong
             else:
@@ -78,6 +78,7 @@ def adjust_minus(cigar, rawposition):
             operator = a
             cigardict[a] = allnumber
             allnumber = ""
+        #allows me to overwrite the first S, gets the last S which is the softclip closer to the 5' end.
     adjustedposition = int(rawposition) - int(cigardict['S'])
     return adjustedposition
 

@@ -53,17 +53,18 @@ def splitit(splitline):
     cigar = splitline[5]
     return rawposition, umi, strand, cigar
 
-def uncigar(cigar):
-    operators = {S = softclip, M = match, I = insert, D = deletion, N = skipped}
-    splitcigar = cigar.split()
-    print(splitcigar)
+def adjust_plus(cigar, rawposition):
+    number = ""
+    for a in cigar:
+        if a.isnumeric() == True:
+            number = number + str(a)
+        else:
+            if a == "S": # we only have to look at soft-clipping for plus strand reads
+                adjustedposition = rawposition - int(number)
+                break #otherwise, if you have another softclip at the end, it will be wrong
+    return adjustedposition
 
 
-
-
-def adjust_plus(rawposition, cigar):
-    idns = set("IDNS")
-    if set(cigar) in idns:
         
 
 

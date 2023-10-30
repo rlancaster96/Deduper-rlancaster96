@@ -74,16 +74,19 @@ def adjust_minus(cigar, rawposition):
 
 #set up empty dictionary
 
-#unique_reads is a set that contains strings of (rawposition:umi:strand:cigar)
+#unique_reads is a set that contains strings of (rawposition:umi:strand)
 unique_reads = set()
 chromosome = ""
 
 
 samfile = open(args.file, "r")
 outfile = open(args.outfile, "w")
+duplicatefile = args.outfile + "_duplicates"
+duplicateoutfile = open(duplicatefile, "w")
 for line in samfile:
     if line.startswith("@"):
         outfile.write(line)
+        duplicateoutfile.write(line)
     else:
         splitline = line.split("\t")
         current_chromosome = splitline[2]
@@ -99,8 +102,12 @@ for line in samfile:
                 adjustedposition = adjust_plus(cigar, rawposition)
             else:
                 adjustedposition = adjust_minus(cigar,rawposition)
-            read_ID = rawposition + ":" + umi + ":" + strand + ":" + cigar
-            unique_reads.add(read_ID)
+            read_ID = str(adjustedposition) + ":" + umi + ":" + strand
+            if read_ID in unique_reads:
+                duplicateoutfile.write(line)
+            else:
+                outfile.write(line)
+                unique_reads.add(read_ID)
             print(unique_reads)
         else:
             rawposition, umi, strand, cigar = splitit(splitline)
@@ -108,7 +115,13 @@ for line in samfile:
                 adjustedposition = adjust_plus(cigar, rawposition)
             else:
                 adjustedposition = adjust_minus(cigar,rawposition)
-            read_ID = rawposition + ":" + umi + ":" + strand + ":" + cigar
+            read_ID = str(adjustedposition) + ":" + umi + ":" + strand
+            if read_ID in unique_reads:
+                duplicateoutfile.write(line)
+            else:
+                outfile.write(line)
+                unique_reads.add(read_ID)
+            
             unique_reads.add(read_ID)
             print(unique_reads)
 

@@ -68,9 +68,18 @@ def adjust_plus(cigar, rawposition):
     return adjustedposition
 
 def adjust_minus(cigar, rawposition):
-    adjustedposition = 0 #placeholder
+    cigardict = {}
+    allnumber = ""
+    for a in cigar:
+        if a.isnumeric() == True:
+            number = str(a)
+            allnumber = allnumber + number
+        else:
+            operator = a
+            cigardict[a] = allnumber
+            allnumber = ""
+    adjustedposition = int(rawposition) - int(cigardict['S'])
     return adjustedposition
-
 
 #set up empty dictionary
 
@@ -83,6 +92,7 @@ samfile = open(args.file, "r")
 outfile = open(args.outfile, "w")
 duplicatefile = args.outfile + "_duplicates"
 duplicateoutfile = open(duplicatefile, "w")
+
 for line in samfile:
     if line.startswith("@"):
         outfile.write(line)
@@ -100,7 +110,7 @@ for line in samfile:
             rawposition, umi, strand, cigar = splitit(splitline)
             if strand == "plus":
                 adjustedposition = adjust_plus(cigar, rawposition)
-            else:
+            else: #minus strand
                 adjustedposition = adjust_minus(cigar,rawposition)
             read_ID = str(adjustedposition) + ":" + umi + ":" + strand
             if read_ID in unique_reads:

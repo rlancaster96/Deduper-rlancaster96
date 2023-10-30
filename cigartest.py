@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-cigar = "2S71M4S"
+cigar = "71M4S"
 
 def uncigar(cigar):
     cigardict = {}
@@ -27,7 +27,10 @@ def adjust_plus(cigar, rawposition):
             if a == "S": # we only have to look at soft-clipping for plus strand reads
                 adjustedposition = rawposition - int(number)
                 break #otherwise, if you have another softclip at the end, it will be wrong
+            else:
+                adjustedposition = rawposition
+                break
     return adjustedposition
 
-adjustedposition = adjust_plus("22S71M50S", 100)
+adjustedposition = adjust_plus("71M50S", 100)
 print(adjustedposition)

@@ -60,15 +60,16 @@ def adjust_plus(cigar, rawposition):
             number = number + str(a)
         else:
             if a == "S": # we only have to look at soft-clipping for plus strand reads
-                adjustedposition = rawposition - int(number)
+                adjustedposition = int(rawposition) - int(number)
                 break #otherwise, if you have another softclip at the end, it will be wrong
+            else:
+                adjustedposition = int(rawposition)
+                break
     return adjustedposition
 
-
-        
-
-
-# def adjust_minus
+def adjust_minus(cigar, rawposition):
+    adjustedposition = 0 #placeholder
+    return adjustedposition
 
 
 #set up empty dictionary
@@ -94,11 +95,19 @@ for line in samfile:
             chromosome = current_chromosome
             print(f"The chromosome has been updated to {chromosome}")
             rawposition, umi, strand, cigar = splitit(splitline)
+            if strand == "plus":
+                adjustedposition = adjust_plus(cigar, rawposition)
+            else:
+                adjustedposition = adjust_minus(cigar,rawposition)
             read_ID = rawposition + ":" + umi + ":" + strand + ":" + cigar
             unique_reads.add(read_ID)
             print(unique_reads)
         else:
             rawposition, umi, strand, cigar = splitit(splitline)
+            if strand == "plus":
+                adjustedposition = adjust_plus(cigar, rawposition)
+            else:
+                adjustedposition = adjust_minus(cigar,rawposition)
             read_ID = rawposition + ":" + umi + ":" + strand + ":" + cigar
             unique_reads.add(read_ID)
             print(unique_reads)

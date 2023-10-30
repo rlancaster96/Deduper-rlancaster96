@@ -1,33 +1,33 @@
 #!/usr/bin/env python
 
-#import bioinfo.py
-# import bioinfo
+import bioinfo
 
-#By chromosome: UMI | adjusted 5' position | strand |
-
-#set up argparse 
+#set up argparse with help statement
 import argparse
 def get_args():
-    parser = argparse.ArgumentParser(description="deduper description")
+    parser = argparse.ArgumentParser(description="deduper.py removes PCR duplicates. It takes two files: a file with UMIs and a SAM file you would like to deduplicate. It outputs two files: one deduplicated SAM file, and one SAM file containing all duplicates. The limitations of this function include: 1. Does not account for hard clipping 2. Does not use new CIGAR string encoding of '=', 'x'. Only uses 'M' 3. Ignores N's (splicing) for plus strand, so some duplicates are included in the final deduplicated output.")
     parser.add_argument("-u", "--umi", help="Specify the file name containing UMI list", required=True, type=str)
     parser.add_argument("-f", "--file", help="Specify the file SAM file you want to deduplicate", required=True, type=str)
     parser.add_argument("-o", "--outfile", help="Specify the name of the deduplicated output file", required=True, type=str)
     return parser.parse_args()
 args = get_args()
 
-#Make function for creating umi set
+#1a. Function for creating umi set
 def umi_reference_set(umifile):
     umi_set = set()
     with open(umifile, "r") as fh:
         for line in fh:
             line = line.strip()
-            if line in umi_set:
+            umi_nucleotides = line.split()
+            if bioinfo.validate_base_seq(line) == False:
+                raise Exception("Unexpected character in your UMIs. UMI must contain only nucleotides ACTGN.")
+            elif line in umi_set:
                 raise Exception("Your UMIs are not all unique")
             else:
                 umi_set.add(line)
     return umi_set
 
-#make umi reference set from the file
+#1b. Make umi reference set from the file
 umis = umi_reference_set(args.umi)
 
 #setup splitting function for parsing lines in the sam file
@@ -52,6 +52,22 @@ def splitit(splitline):
     #get the cigar string
     cigar = splitline[5]
     return rawposition, umi, strand, cigar
+
+def uncigar(cigar):
+    operators = {S = softclip, M = match, I = insert, D = deletion, N = skipped}
+    splitcigar = cigar.split()
+    print(splitcigar)
+
+
+
+
+def adjust_plus(rawposition, cigar):
+    idns = set("IDNS")
+    if set(cigar) in idns:
+        
+
+
+# def adjust_minus
 
 
 #set up empty dictionary

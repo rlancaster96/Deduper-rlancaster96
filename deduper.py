@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import bioinfo
+import re
 
 #set up argparse with help statement
 import argparse

@@ -68,19 +68,23 @@ def adjust_plus(cigar, rawposition):
                 break
     return adjustedposition
 
-def adjust_minus(cigar, rawposition):
-    cigardict = {}
-    allnumber = ""
-    for a in cigar:
-        if a.isnumeric() == True:
-            number = str(a)
-            allnumber = allnumber + number
-        else:
-            operator = a
-            cigardict[a] = allnumber
-            allnumber = ""
-        #allows me to overwrite the first S, gets the last S which is the softclip closer to the 5' end.
-    adjustedposition = int(rawposition) - int(cigardict['S'])
+def adjust_minus(number: list, operator: list, rawposition: int):
+    '''Retrieve the 5' start position of the minus strand, given its leftmost "raw" position. Accounts for M, D, N, S. Ignores I.'''
+    adjustedposition = rawposition
+    if operator[0] == "S":
+        adjustedoperators = operator[1:] #remove first soft clip
+        adjustednumber = number[1:] #remove first soft clip
+        for i,a in enumerate(adjustedoperators):
+            if a == "M" or a == "D" or a == "N" or a == "S": #last S is in case there's soft clipping on end
+                adjustedposition += int(adjustednumber[i])
+            else: #a == I (which does not have an insertion to the reference), or any other cigar string which we do not account for
+                adjustedposition = adjustedposition
+    else: #no soft clipping at start
+         for i,a in enumerate(operator): 
+            if a == "M" or a == "D" or a == "N" or a == "S": #last S is in case there's soft clipping on end
+                adjustedposition += int(number[i])
+            else: #a == I (which does not have an insertion to the reference), or any other cigar string which we do not account for
+                adjustedposition = adjustedposition
     return adjustedposition
 
 #set up empty dictionary

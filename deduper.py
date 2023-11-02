@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+#./deduper.py -u STL96.txt -f unittests/input.sam -o test.sam
+
 import bioinfo
 import re
 
@@ -68,9 +70,23 @@ def adjust_plus(cigar, rawposition):
                 break
     return adjustedposition
 
+def cigar_cutter(cigar: str):
+    operator = []
+    number = []
+    split = re.split('(\d+)', cigar) #split into a list by occurence of a digit
+     
+    for a in split:
+        if re.fullmatch(r"\d+", a):
+            number.append(a)
+        else:
+            operator.append(a)
+             
+    operator = operator[1:] #splits into empty space at the beginning of the string, this removes the empty string.
+    return number, operator
+
 def adjust_minus(number: list, operator: list, rawposition: int):
     '''Retrieve the 5' start position of the minus strand, given its leftmost "raw" position. Accounts for M, D, N, S. Ignores I.'''
-    adjustedposition = rawposition
+    adjustedposition = int(rawposition)
     if operator[0] == "S":
         adjustedoperators = operator[1:] #remove first soft clip
         adjustednumber = number[1:] #remove first soft clip
@@ -79,8 +95,8 @@ def adjust_minus(number: list, operator: list, rawposition: int):
                 adjustedposition += int(adjustednumber[i])
             else: #a == I (which does not have an insertion to the reference), or any other cigar string which we do not account for
                 adjustedposition = adjustedposition
-    else: #no soft clipping at start
-         for i,a in enumerate(operator): 
+    else:
+         for i,a in enumerate(operator):
             if a == "M" or a == "D" or a == "N" or a == "S": #last S is in case there's soft clipping on end
                 adjustedposition += int(number[i])
             else: #a == I (which does not have an insertion to the reference), or any other cigar string which we do not account for
@@ -92,7 +108,6 @@ def adjust_minus(number: list, operator: list, rawposition: int):
 #unique_reads is a set that contains strings of (rawposition:umi:strand)
 unique_reads = set()
 chromosome = ""
-
 
 samfile = open(args.file, "r")
 outfile = open(args.outfile, "w")
@@ -110,14 +125,14 @@ for line in samfile:
         if current_chromosome != chromosome:
             #empty the set at each new chromosome
             unique_reads = set()
-            print("the set is reset")
             chromosome = current_chromosome
-            print(f"The chromosome has been updated to {chromosome}")
+            print(f"Now deduplicating reads on chromosome {chromosome}")
             rawposition, umi, strand, cigar = splitit(splitline)
             if strand == "plus":
                 adjustedposition = adjust_plus(cigar, rawposition)
             else: #minus strand
-                adjustedposition = adjust_minus(cigar,rawposition)
+                number, operator = cigar_cutter(cigar)
+                adjustedposition = adjust_minus(number, operator, rawposition)
             read_ID = str(adjustedposition) + ":" + umi + ":" + strand
             if read_ID in unique_reads:
                 duplicateoutfile.write(line)
@@ -130,7 +145,8 @@ for line in samfile:
             if strand == "plus":
                 adjustedposition = adjust_plus(cigar, rawposition)
             else:
-                adjustedposition = adjust_minus(cigar,rawposition)
+                number, operator = cigar_cutter(cigar)
+                adjustedposition = adjust_minus(number, operator, rawposition)
             read_ID = str(adjustedposition) + ":" + umi + ":" + strand
             if read_ID in unique_reads:
                 duplicateoutfile.write(line)
@@ -143,4 +159,5 @@ for line in samfile:
 
 samfile.close()
 outfile.close()
+duplicateoutfile.close()
 

@@ -106,6 +106,7 @@ def adjust_minus(number: list, operator: list, rawposition):
     return adjustedposition-1 #subtract one from position to account for counting 
 
 def read_IDer(rawposition, umi, strand, cigar):
+    '''takes elements of the line and returns a read ID with corrected position using adjustment and cigar cutting functions.'''
     if strand == "plus":
         adjustedposition = adjust_plus(cigar, rawposition)
     else: #minus strand
@@ -142,15 +143,14 @@ if __name__ == "__main__":
     else:
         samfile = open(args.file, "r")
 
-    # duplicatefile = args.outfile + "_duplicates"
-    # duplicateoutfile = open(duplicatefile, "w")
+
     outfile = open(args.outfile, "w")
     report = open("Deduper_Report.txt", "w")
 
     for line in samfile:
         if line.startswith("@"):
             outfile.write(line)
-            # duplicateoutfile.write(line)
+
             numberheaderlines += 1
         else:
             splitline = line.split("\t")
@@ -172,7 +172,6 @@ if __name__ == "__main__":
                 else:
                     read_ID = read_IDer(rawposition, umi, strand, cigar)
                     if read_ID in unique_reads:
-                        # duplicateoutfile.write(line)
                         removeddups +=1
                     else:
                         outfile.write(line)
@@ -185,7 +184,6 @@ if __name__ == "__main__":
                 else:
                     read_ID = read_IDer(rawposition, umi, strand, cigar)
                     if read_ID in unique_reads:
-                        # duplicateoutfile.write(line)
                         removeddups +=1
                     else:
                         outfile.write(line)
@@ -198,7 +196,6 @@ if __name__ == "__main__":
 
     samfile.close()
     outfile.close()
-    # duplicateoutfile.close()
     report.close()
 
 

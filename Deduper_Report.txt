@@ -1,9 +1,0 @@
-Chromosome , Unique reads: 0
-Chromosome 1, Unique reads: 1
-Chromosome 10, Unique reads: 1
-Chromosome 11, Unique reads: 1
-Chromosome MT, Unique reads: 4
-Number of header lines = 6
-Number of unique reads = 7
-Number of wrong umis = 1
-Number of duplicates = 4

@@ -20,8 +20,7 @@ Write an algorithm that takes a uniquely mapped SAM file as input, filters out P
 
 Pseudocode: 
 
-1 - (Preprocessing in python) Sort out unmapped (4) and secondary alignments (256)
-2 - Unify chromosomal coordinates
+Unify chromosomal coordinates
 I want to filter out duplicates in a chromosomal coordinate-based way to take advantage of reference-based deduplication.
 In order to do this, I need to "correct" position information for soft clipping, taking into account reverse complements.
 Align everything up according to the 5' position. 

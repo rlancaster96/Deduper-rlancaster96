@@ -12,6 +12,7 @@ def get_args():
     parser.add_argument("-u", "--umi", help="Specify the file name containing UMI list. One UMI per line.", required=True, type=str)
     parser.add_argument("-f", "--file", help="Specify the SAM file you want to deduplicate. Takes .sam or .sam.gz", required=True, type=str)
     parser.add_argument("-o", "--outfile", help="Specify the name of the deduplicated output file", required=True, type=str)
+    parser.add_argument("-d", "--duplicatefile", help="Specify name of the output file containing all duplicate reads", required=False, type=str)
     return parser.parse_args()
 args = get_args()
 
@@ -142,8 +143,7 @@ if __name__ == "__main__":
     else:
         samfile = open(args.file, "r")
 
-    duplicatefile = args.outfile + "_duplicates"
-    duplicateoutfile = open(duplicatefile, "w")
+    duplicateoutfile = open(args.duplicatefile, "w")
     outfile = open(args.outfile, "w")
     report = open("Deduper_Report.txt", "w")
 

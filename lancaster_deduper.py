@@ -17,7 +17,7 @@ args = get_args()
 
 #****************************** Functions ***********************************
 
-def umi_reference_set(umifile: str):
+def umi_reference_set(umifile: str) -> set:
     '''Takes a file with one UMI per line and returns a set of UMIs.'''
     umi_set = set()
     with open(umifile, "r") as fh:
@@ -31,7 +31,7 @@ def umi_reference_set(umifile: str):
                 umi_set.add(line)
     return umi_set
 
-def splitit(splitline: str):
+def splitit(splitline: str) -> tuple:
     '''Takes a split line and returns a list of raw position, umi, strand, and cigar string.'''
     strand = ""
     #get umi
@@ -53,7 +53,7 @@ def splitit(splitline: str):
     cigar = splitline[5]
     return rawposition, umi, strand, cigar
 
-def adjust_plus(cigar: str, rawposition):
+def adjust_plus(cigar: str, rawposition: str) -> int:
     '''Takes a cigar string and raw position and adjusts the position. Only for plus strand.'''
     # This function looks at if the first operator is an S.
     # If it is, then it subtracts the digits before the S. If not, then no change is made.
@@ -71,11 +71,11 @@ def adjust_plus(cigar: str, rawposition):
                 break
     return adjustedposition
 
-def cigar_cutter(cigar: str):
+def cigar_cutter(cigar: str) -> tuple:
     '''Split cigar string into a list of digits and a list of operators (including M, I, D, N, S)'''
-    operator = []
-    number = []
-    split = re.split('(\d+)', cigar) #split into a list by occurence of a digit
+    operator: list = []
+    number: list = []
+    split: list = re.split('(\d+)', cigar) #split into a list by occurence of a digit
      
     for a in split:
         if re.fullmatch(r"\d+", a):
@@ -86,9 +86,9 @@ def cigar_cutter(cigar: str):
     operator = operator[1:] #removes empty string at the beginning of the list
     return number, operator
 
-def adjust_minus(number: list, operator: list, rawposition):
+def adjust_minus(number: list, operator: list, rawposition: str) -> int:
     '''Retrieve the 5' start position of the minus strand, given its leftmost "raw" position. Accounts for M, D, N, S. Ignores I.'''
-    adjustedposition = int(rawposition)
+    adjustedposition: int = int(rawposition)
     if operator[0] == "S":
         adjustedoperators = operator[1:] #remove first soft clip
         adjustednumber = number[1:] #remove first soft clip
@@ -105,7 +105,7 @@ def adjust_minus(number: list, operator: list, rawposition):
                 adjustedposition = adjustedposition
     return adjustedposition-1 #subtract one from position to account for counting 
 
-def read_IDer(rawposition, umi, strand, cigar):
+def read_IDer(rawposition: str, umi: str, strand: str, cigar: str) -> str:
     '''takes elements of the line and returns a read ID with corrected position using adjustment and cigar cutting functions.'''
     if strand == "plus":
         adjustedposition = adjust_plus(cigar, rawposition)
@@ -120,18 +120,18 @@ def read_IDer(rawposition, umi, strand, cigar):
 
 if __name__ == "__main__":
     #Make umi reference set from the file
-    umis = umi_reference_set(args.umi)
+    umis: set = umi_reference_set(args.umi)
 
     #initialize global variables 
-    unique_reads = set() #unique_reads is a set that contains strings of (rawposition:umi:strand)
-    chromosome = ""
-    seen_before = set() #set of chromosomes already seen to keep track if we have a properly sorted sam file.
+    unique_reads: set = set() #unique_reads is a set that contains strings of (rawposition:umi:strand)
+    chromosome: str = ""
+    seen_before: set = set() #set of chromosomes already seen to keep track if we have a properly sorted sam file.
 
     #initialize report variables
-    numberheaderlines = 0
-    numberuniquereads = 0
-    numberwrongumis = 0
-    removeddups = 0
+    numberheaderlines: int = 0
+    numberuniquereads: int = 0
+    numberwrongumis: int = 0
+    removeddups: int = 0
 
     #Open files
     samname = args.file
@@ -142,19 +142,16 @@ if __name__ == "__main__":
         samfile = gzip.open(args.file, "rt")
     else:
         samfile = open(args.file, "r")
-
-
     outfile = open(args.outfile, "w")
     report = open("Deduper_Report.txt", "w")
 
     for line in samfile:
         if line.startswith("@"):
             outfile.write(line)
-
             numberheaderlines += 1
         else:
-            splitline = line.split("\t")
-            current_chromosome = splitline[2]
+            splitline: list = line.split("\t")
+            current_chromosome: str = splitline[2]
 
             #check if chromosome is the same
             if current_chromosome != chromosome:
